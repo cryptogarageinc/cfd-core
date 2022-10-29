@@ -32,7 +32,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: setup python
       # for libwally-core test
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
         architecture: x64
@@ -72,7 +72,7 @@ jobs:
             xcode_version: '11.7'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Select Xcode version
       run: sudo xcode-select -s '/Applications/Xcode_${{matrix.xcode_version}}.app/Contents/Developer'
     - name: Show Xcode version
@@ -103,7 +103,7 @@ jobs:
             elements: off
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: dump version
       run: |
         cmake --version
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: install_doxygen
       run: sudo apt install doxygen graphviz
     - name: doxygen_check
