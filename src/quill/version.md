@@ -1,3 +1,3 @@
 https://github.com/odygrd/quill
 
-v1.6.2
+v2.2.0

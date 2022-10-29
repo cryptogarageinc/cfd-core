@@ -5,9 +5,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace quill
-{
-namespace detail
+namespace quill::detail
 {
 namespace
 {
@@ -424,7 +422,7 @@ FreeListAllocator::Block* FreeListAllocator::_request_from_os(size_t size)
   size_t const total_size = _add_header_size(size);
 
   // Request aligned memory from OS
-  void* buffer = aligned_alloc(alignof(std::max_align_t), total_size);
+  void* buffer = aligned_alloc(alignof(Block), total_size);
 
   // in the returned pointer create a block*
   Block* block = new (buffer) Block;
@@ -522,5 +520,4 @@ size_t FreeListAllocator::_add_padding(size_t s) noexcept
  */
 size_t FreeListAllocator::_add_header_size(size_t s) noexcept { return s + sizeof(BlockHeader); }
 
-} // namespace detail
-} // namespace quill
+} // namespace quill::detail

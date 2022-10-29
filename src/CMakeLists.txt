@@ -151,7 +151,6 @@ target_include_directories(${PROJECT_NAME}
     .
     include
     univalue/include
-    quill/include
 )
 target_link_directories(${PROJECT_NAME}
   PRIVATE
@@ -167,7 +166,6 @@ target_include_directories(${PROJECT_NAME}
     .
     include
     univalue/include
-    quill/include
     ${wally_DIR}/../include
 )
 target_link_directories(${PROJECT_NAME}

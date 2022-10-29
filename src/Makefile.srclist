@@ -40,21 +40,16 @@ FMT_SOURCES = \
 
 QUILL_SOURCES = \
   quill/src/detail/backend/BackendWorker.cpp \
-  quill/src/detail/backend/BacktraceLogRecordStorage.cpp \
+  quill/src/detail/backend/BacktraceStorage.cpp \
   quill/src/detail/backend/FreeListAllocator.cpp \
-  quill/src/detail/backend/TimestampFormatter.cpp \
   quill/src/detail/backend/StringFromTime.cpp \
+  quill/src/detail/backend/TimestampFormatter.cpp \
   quill/src/detail/misc/FileUtilities.cpp \
   quill/src/detail/misc/Os.cpp \
   quill/src/detail/misc/RdtscClock.cpp \
-  quill/src/detail/misc/RecursiveSpinlock.cpp \
-  quill/src/detail/misc/Spinlock.cpp \
   quill/src/detail/misc/Utilities.cpp \
-  quill/src/detail/Config.cpp \
-  quill/src/detail/Deserialize.cpp \
   quill/src/detail/HandlerCollection.cpp \
   quill/src/detail/LoggerCollection.cpp \
-  quill/src/detail/LogManagerSingleton.cpp \
   quill/src/detail/SignalHandler.cpp \
   quill/src/detail/ThreadContextCollection.cpp \
   quill/src/handlers/ConsoleHandler.cpp \

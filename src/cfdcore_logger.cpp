@@ -14,7 +14,7 @@
 #include "quill/Logger.h"
 #include "quill/Fmt.h"
 #include "quill/Quill.h"
-#include "quill/LogMacroMetadata.h"
+#include "quill/MacroMetadata.h"
 #ifdef CFDCORE_LOG_CONSOLE
 #include "quill/handlers/ConsoleHandler.h"
 #endif  // CFDCORE_LOG_CONSOLE
@@ -150,8 +150,8 @@ cfd::core::CfdError cfd::core::logger::CfdLogger::Initialize(void) {
       quill::Handler* handler =
           quill::stdout_handler("stdout_colours", console_colours);
       handler->set_pattern(
-          QUILL_STRING("%(ascii_time) [%(process):%(thread)] %(level_name) "
-                       "%(logger_name) - %(message)"),  // NOLINT
+          std::string("%(ascii_time) [%(process):%(thread)] %(level_name) "
+                      "%(logger_name) - %(message)"),  // NOLINT
           "%D %H:%M:%S.%Qms", quill::Timezone::LocalTime);
       quill::set_default_logger_handler(handler);
       quill::start();
@@ -161,8 +161,8 @@ cfd::core::CfdError cfd::core::logger::CfdLogger::Initialize(void) {
       quill::Handler* handler =
           quill::rotating_file_handler(filepath, "w", kRotateFileSize, 3);
       handler->set_pattern(
-          QUILL_STRING("%(ascii_time) [%(process):%(thread)] %(level_name) "
-                       "%(logger_name) - %(message)"),  // NOLINT
+          std::string("%(ascii_time) [%(process):%(thread)] %(level_name) "
+                      "%(logger_name) - %(message)"),  // NOLINT
           "%D %H:%M:%S.%Qms", quill::Timezone::LocalTime);
       quill::Logger* logger = quill::create_logger("cfd", handler);
 #endif
@@ -180,8 +180,17 @@ cfd::core::CfdError cfd::core::logger::CfdLogger::Initialize(void) {
 void cfd::core::logger::CfdLogger::Finalize(bool is_finish_process) {
   if (is_alive_) {
     is_alive_ = false;
-    if (is_use_default_logger_ && (!is_finish_process)) {
-      // quill is not found finalize function.
+    if (is_use_default_logger_) {
+#ifdef CFDCORE_LOGGING
+      quill::flush();
+#endif  // CFDCORE_LOGGING
+      if (is_finish_process) {
+#if defined(CFDCORE_LOGGING) && defined(CFDCORE_LOG_CONSOLE)
+        // io-wait before shutdown
+        std::cout << "cfd::core::Finalize sleep for 1sec" << std::endl;
+        std::this_thread::sleep_for(std::chrono::microseconds{1000000});
+#endif  // CFDCORE_LOGGING && CFDCORE_LOG_CONSOLE
+      }
     }
   }
 }

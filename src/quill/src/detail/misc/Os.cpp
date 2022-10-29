@@ -1,16 +1,16 @@
 #include "quill/detail/misc/Os.h"
 #include "quill/QuillError.h"
-#include "quill/detail/misc/Macros.h"
+#include "quill/detail/misc/Common.h"
 #include "quill/detail/misc/Utilities.h"
 #include <array>
 #include <cerrno> // for errno, EINVAL, ENOMEM
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring> // for strerror
 #include <cstring>
 #include <ctime>
 #include <sstream>
+#include <string>
 
 #if defined(_WIN32)
   #define WIN32_LEAN_AND_MEAN
@@ -24,7 +24,6 @@
   #include <malloc.h>
   #include <share.h>
   #include <windows.h>
-
   #include <processthreadsapi.h>
 #elif defined(__APPLE__)
   #include <mach/thread_act.h>
@@ -53,6 +52,20 @@ namespace quill
 {
 namespace detail
 {
+#if defined(_WIN32)
+/***/
+size_t get_wide_string_encoding_size(std::wstring_view s)
+{
+  return static_cast<size_t>(::WideCharToMultiByte(CP_UTF8, 0, s.data(), static_cast<int>(s.size()), nullptr, 0, nullptr, nullptr));
+}
+
+/***/
+void wide_string_to_narrow(void* dest, size_t required_bytes, std::wstring_view s) 
+{
+  ::WideCharToMultiByte(CP_UTF8, 0, s.data(), static_cast<int>(s.size()),
+                        reinterpret_cast<char*>(dest), static_cast<int>(required_bytes), NULL, NULL);
+}
+#endif
 
 /***/
 tm* gmtime_rs(time_t const* timer, tm* buf)
@@ -154,10 +167,8 @@ void set_cpu_affinity(uint16_t cpu_id)
 /***/
 void set_thread_name(char const* name)
 {
-#if defined(__CYGWIN__)
-  // set thread name on cygwin not supported
-#elif defined(__MINGW32__) || defined(__MINGW64__)
-  // Disabled on MINGW.
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(QUILL_NO_THREAD_NAME_SUPPORT)
+  // Disabled on MINGW / Cygwin.
   (void)name;
 #elif defined(_WIN32)
   std::wstring name_ws = s2ws(name);
@@ -183,6 +194,36 @@ void set_thread_name(char const* name)
               << "\"" << strerror(errno) << "\", errno \"" << errno << "\"";
     QUILL_THROW(QuillError{error_msg.str()});
   }
+#endif
+}
+
+/***/
+std::string get_thread_name()
+{
+#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(__MINGW64__) || defined(QUILL_NO_THREAD_NAME_SUPPORT)
+  // Disabled on MINGW / Cygwin.
+  return std::string{};
+#elif defined(_WIN32)
+  PWSTR data;
+  HRESULT hr = GetThreadDescription(GetCurrentThread(), &data);
+  if (FAILED(hr))
+  {
+    QUILL_THROW(QuillError{"Failed to get thread name"});
+  }
+
+  std::wstring tname{&data[0], wcslen(&data[0])};
+  LocalFree(data);
+  return ws2s(tname);
+#else
+  // Apple, linux
+  std::array<char, 16> thread_name{'\0'};
+  pthread_t thread = pthread_self();
+  auto res = pthread_getname_np(thread, &thread_name[0], 16);
+  if (res != 0)
+  {
+    QUILL_THROW(QuillError{"Failed to get thread name. error: " + std::to_string(res)});
+  }
+  return std::string{&thread_name[0], strlen(&thread_name[0])};
 #endif
 }
 
@@ -221,15 +262,18 @@ size_t get_page_size() noexcept
 {
   // thread local to avoid race condition when more than one threads are creating the queue at the same time
   static thread_local uint32_t page_size{0};
+  if (page_size == 0)
+  {
 #if defined(__CYGWIN__)
-  page_size = 4096;
+    page_size = 4096;
 #elif defined(_WIN32)
-  SYSTEM_INFO system_info;
-  GetSystemInfo(&system_info);
-  page_size = std::max(system_info.dwPageSize, system_info.dwAllocationGranularity);
+    SYSTEM_INFO system_info;
+    GetSystemInfo(&system_info);
+    page_size = std::max(system_info.dwPageSize, system_info.dwAllocationGranularity);
 #else
-  page_size = static_cast<uint32_t>(sysconf(_SC_PAGESIZE));
+    page_size = static_cast<uint32_t>(sysconf(_SC_PAGESIZE));
 #endif
+  }
   return page_size;
 }
 
@@ -272,85 +316,6 @@ void aligned_free(void* ptr) noexcept
 #else
   free(ptr);
 #endif
-}
-
-/***/
-FILE* fopen(filename_t const& filename, std::string const& mode)
-{
-  FILE* fp{nullptr};
-#if defined(_WIN32)
-  std::wstring const w_mode = s2ws(mode);
-  fp = ::_wfsopen((filename.c_str()), w_mode.data(), _SH_DENYNO);
-#else
-  fp = ::fopen(filename.data(), mode.data());
-#endif
-  if (!fp)
-  {
-    std::ostringstream error_msg;
-    error_msg << "fopen failed with error message errno: \"" << errno << "\"";
-    QUILL_THROW(QuillError{error_msg.str()});
-  }
-  return fp;
-}
-
-/***/
-size_t fsize(FILE* file)
-{
-  if (!file)
-  {
-    QUILL_THROW(QuillError{"fsize failed. file is nullptr"});
-  }
-
-#if defined(_WIN32) && !defined(__CYGWIN__)
-  auto const fd = ::_fileno(file);
-  auto const ret = ::_filelength(fd);
-
-  if (ret >= 0)
-  {
-    return static_cast<size_t>(ret);
-  }
-#else
-  auto const fd = fileno(file);
-  struct stat st;
-
-  if (fstat(fd, &st) == 0)
-  {
-    return static_cast<size_t>(st.st_size);
-  }
-#endif
-
-  // failed to get the file size
-  std::ostringstream error_msg;
-  error_msg << "fopen failed with error message errno: \"" << errno << "\"";
-  QUILL_THROW(QuillError{error_msg.str()});
-}
-
-/***/
-int remove(filename_t const& filename) noexcept
-{
-#if defined(_WIN32)
-  return ::_wremove(filename.c_str());
-#else
-  return std::remove(filename.c_str());
-#endif
-}
-
-/***/
-void rename(filename_t const& previous_file, filename_t const& new_file)
-{
-#if defined(_WIN32)
-  int const res = ::_wrename(previous_file.c_str(), new_file.c_str());
-#else
-  int const res = std::rename(previous_file.c_str(), new_file.c_str());
-#endif
-
-  if (QUILL_UNLIKELY(res != 0))
-  {
-    std::ostringstream error_msg;
-    error_msg << "failed to rename previous log file during rotation, with error message errno: \""
-              << errno << "\"";
-    QUILL_THROW(QuillError{error_msg.str()});
-  }
 }
 
 /***/
@@ -416,47 +381,6 @@ bool is_in_terminal(FILE* file) noexcept
   return ::isatty(fileno(file)) != 0;
 #endif
 }
-
-#if defined(_WIN32)
-/***/
-void wstring_to_utf8(fmt::wmemory_buffer const& w_mem_buffer, fmt::memory_buffer& mem_buffer)
-{
-  auto bytes_needed = static_cast<int32_t>(mem_buffer.capacity() - mem_buffer.size());
-
-  if ((w_mem_buffer.size() + 1) * 2 > static_cast<size_t>(bytes_needed))
-  {
-    // if our given string is larger than the capacity, calculate how many bytes we need
-    bytes_needed = ::WideCharToMultiByte(
-      CP_UTF8, 0, w_mem_buffer.data(), static_cast<int>(w_mem_buffer.size()), NULL, 0, NULL, NULL);
-  }
-
-  if (QUILL_UNLIKELY(bytes_needed == 0))
-  {
-    auto const error = std::error_code(GetLastError(), std::system_category());
-    std::ostringstream error_msg;
-    error_msg << "wstring_to_utf8 failed with error message "
-              << "\"" << error.message() << "\", errno \"" << error.value() << "\"";
-    QUILL_THROW(QuillError{error_msg.str()});
-  }
-
-  // convert
-  bytes_needed =
-    ::WideCharToMultiByte(CP_UTF8, 0, w_mem_buffer.data(), static_cast<int>(w_mem_buffer.size()),
-                          mem_buffer.data() + mem_buffer.size(), bytes_needed, NULL, NULL);
-
-  if (QUILL_UNLIKELY(bytes_needed == 0))
-  {
-    auto const error = std::error_code(GetLastError(), std::system_category());
-    std::ostringstream error_msg;
-    error_msg << "wstring_to_utf8 failed with error message "
-              << "\"" << error.message() << "\", errno \"" << error.value() << "\"";
-    QUILL_THROW(QuillError{error_msg.str()});
-  }
-
-  // resize again in case we didn't calculate before how many bytes needed (1st call to WideCharToMultiByte was skipped)
-  mem_buffer.resize(static_cast<uint32_t>(bytes_needed + mem_buffer.size()));
-}
-#endif
 
 } // namespace detail
 } // namespace quill

@@ -135,7 +135,7 @@ cmake --build build
 - `-DCMAKE_BUILD_TYPE=Debug`: Enable debug build.
 - `-DSTD_CPP_VERSION=xx`: Set the C++ version. [11,14,17,20] (default:14)
 - `-DCFDCORE_DEBUG=on`: Enable cfd debug mode and loggings log files. [ON/OFF] (default:OFF)
-  - Enable debug mode is need `STD_CPP_VERSION` upper 14.
+  - Enable debug mode is need `STD_CPP_VERSION` upper 17.
 - `-DCFDCORE_LOG_LEVEL=xxxx`: Set log level. [trace/debug/info/warn] (default:info)
 - `-DCFDCORE_LOG_CONSOLE=on`: Enable cfd loggings console output mode. [ON/OFF] (default:OFF)
 

@@ -1,3 +1,3 @@
 https://github.com/fmtlib/fmt
 
-v7.1.3
+v9.1.0
