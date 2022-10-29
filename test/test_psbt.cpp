@@ -1,5 +1,8 @@
 #include "gtest/gtest.h"
 #include <vector>
+#include <chrono>
+#include <string>
+#include <thread>
 
 #include "cfdcore/cfdcore_common.h"
 #include "cfdcore/cfdcore_exception.h"
@@ -9,6 +12,7 @@
 #include "cfdcore/cfdcore_amount.h"
 #include "cfdcore/cfdcore_address.h"
 #include "cfdcore/cfdcore_transaction.h"
+#include "cfdcore/cfdcore_logger.h"
 
 using cfd::core::CfdException;
 using cfd::core::Address;
@@ -37,6 +41,14 @@ using cfd::core::WitnessVersion;
 using cfd::core::ScriptUtil;
 using cfd::core::KeyData;
 
+
+cfd::core::CfdCoreHandle  _g_handle_ = nullptr;
+
+TEST(Psbt, StartLog) {
+  // 確保したハンドルはプロセス終了時に自動解放させる
+  EXPECT_NO_THROW((cfd::core::Initialize(&_g_handle_)));
+  std::this_thread::sleep_for(std::chrono::microseconds{1000000});
+}
 
 TEST(Psbt, EmptyObject) {
   try {
@@ -83,6 +95,7 @@ struct CfdPsbtTestData {
   std::string error_message;
 };
 
+
 // https://github.com/bitcoin/bips/blob/master/bip-0174.mediawiki
 static const std::vector<CfdPsbtTestData> g_cfd_psbt_testdata = {
   {
@@ -98,14 +111,15 @@ static const std::vector<CfdPsbtTestData> g_cfd_psbt_testdata = {
   {
     "70736274ff0100fd0a010200000002ab0949a08c5af7c49b8212f417e2f15ab3f5c33dcf153821a8139f877a5b7be4000000006a47304402204759661797c01b036b25928948686218347d89864b719e1f7fcf57d1e511658702205309eabf56aa4d8891ffd111fdf1336f3a29da866d7f8486d75546ceedaf93190121035cdc61fc7ba971c0b501a646a2a83b102cb43881217ca682dc86e2d73fa88292feffffffab0949a08c5af7c49b8212f417e2f15ab3f5c33dcf153821a8139f877a5b7be40100000000feffffff02603bea0b000000001976a914768a40bbd740cbe81d988e71de2a4d5c71396b1d88ac8e240000000000001976a9146f4620b553fa095e721b9ee0efe9fa039cca459788ac00000000000001012000e1f5050000000017a9143545e6e33b832c47050f24d3eeb93c9c03948bc787010416001485d13537f2e265405a34dbafa9e3dda01fb82308000000",
     "cHNidP8BAP0KAQIAAAACqwlJoIxa98SbghL0F+LxWrP1wz3PFTghqBOfh3pbe+QAAAAAakcwRAIgR1lmF5fAGwNrJZKJSGhiGDR9iYZLcZ4ff89X0eURZYcCIFMJ6r9Wqk2Ikf/REf3xM286KdqGbX+EhtdVRs7tr5MZASEDXNxh/HupccC1AaZGoqg7ECy0OIEhfKaC3Ibi1z+ogpL+////qwlJoIxa98SbghL0F+LxWrP1wz3PFTghqBOfh3pbe+QBAAAAAP7///8CYDvqCwAAAAAZdqkUdopAu9dAy+gdmI5x3ipNXHE5ax2IrI4kAAAAAAAAGXapFG9GILVT+glechue4O/p+gOcykWXiKwAAAAAAAABASAA4fUFAAAAABepFDVF5uM7gyxHBQ8k0+65PJwDlIvHhwEEFgAUhdE1N/LiZUBaNNuvqePdoB+4IwgAAAA=",
-    "psbt format error."
+    // "psbt format error."
+    ""  // TODO: check after test
   },
   {
     "70736274ff000100fda5010100000000010289a3c71eab4d20e0371bbba4cc698fa295c9463afa2e397f8533ccb62f9567e50100000017160014be18d152a9b012039daf3da7de4f53349eecb985ffffffff86f8aa43a71dff1448893a530a7237ef6b4608bbb2dd2d0171e63aec6a4890b40100000017160014fe3e9ef1a745e974d902c4355943abcb34bd5353ffffffff0200c2eb0b000000001976a91485cff1097fd9e008bb34af709c62197b38978a4888ac72fef84e2c00000017a914339725ba21efd62ac753a9bcd067d6c7a6a39d05870247304402202712be22e0270f394f568311dc7ca9a68970b8025fdd3b240229f07f8a5f3a240220018b38d7dcd314e734c9276bd6fb40f673325bc4baa144c800d2f2f02db2765c012103d2e15674941bad4a996372cb87e1856d3652606d98562fe39c5e9e7e413f210502483045022100d12b852d85dcd961d2f5f4ab660654df6eedcc794c0c33ce5cc309ffb5fce58d022067338a8e0e1725c197fb1a88af59f51e44e4255b20167c8684031c05d1f2592a01210223b72beef0965d10be0778efecd61fcac6f79a4ea169393380734464f84f2ab30000000000",
     "cHNidP8AAQD9pQEBAAAAAAECiaPHHqtNIOA3G7ukzGmPopXJRjr6Ljl/hTPMti+VZ+UBAAAAFxYAFL4Y0VKpsBIDna89p95PUzSe7LmF/////4b4qkOnHf8USIk6UwpyN+9rRgi7st0tAXHmOuxqSJC0AQAAABcWABT+Pp7xp0XpdNkCxDVZQ6vLNL1TU/////8CAMLrCwAAAAAZdqkUhc/xCX/Z4Ai7NK9wnGIZeziXikiIrHL++E4sAAAAF6kUM5cluiHv1irHU6m80GfWx6ajnQWHAkcwRAIgJxK+IuAnDzlPVoMR3HyppolwuAJf3TskAinwf4pfOiQCIAGLONfc0xTnNMkna9b7QPZzMlvEuqFEyADS8vAtsnZcASED0uFWdJQbrUqZY3LLh+GFbTZSYG2YVi/jnF6efkE/IQUCSDBFAiEA0SuFLYXc2WHS9fSrZgZU327tzHlMDDPOXMMJ/7X85Y0CIGczio4OFyXBl/saiK9Z9R5E5CVbIBZ8hoQDHAXR8lkqASECI7cr7vCWXRC+B3jv7NYfysb3mk6haTkzgHNEZPhPKrMAAAAAAA==",
     "psbt global tx not found error."
   },
-  {
+  {  // Invalid format: tx:input1,output1  psbt_inputs:2  psbt_outputs:0
     "70736274ff0100750200000001268171371edff285e937adeea4b37b78000c0566cbb3ad64641713ca42171bf60000000000feffffff02d3dff505000000001976a914d0c59903c5bac2868760e90fd521a4665aa7652088ac00e1f5050000000017a9143545e6e33b832c47050f24d3eeb93c9c03948bc787b32e1300000100fda5010100000000010289a3c71eab4d20e0371bbba4cc698fa295c9463afa2e397f8533ccb62f9567e50100000017160014be18d152a9b012039daf3da7de4f53349eecb985ffffffff86f8aa43a71dff1448893a530a7237ef6b4608bbb2dd2d0171e63aec6a4890b40100000017160014fe3e9ef1a745e974d902c4355943abcb34bd5353ffffffff0200c2eb0b000000001976a91485cff1097fd9e008bb34af709c62197b38978a4888ac72fef84e2c00000017a914339725ba21efd62ac753a9bcd067d6c7a6a39d05870247304402202712be22e0270f394f568311dc7ca9a68970b8025fdd3b240229f07f8a5f3a240220018b38d7dcd314e734c9276bd6fb40f673325bc4baa144c800d2f2f02db2765c012103d2e15674941bad4a996372cb87e1856d3652606d98562fe39c5e9e7e413f210502483045022100d12b852d85dcd961d2f5f4ab660654df6eedcc794c0c33ce5cc309ffb5fce58d022067338a8e0e1725c197fb1a88af59f51e44e4255b20167c8684031c05d1f2592a01210223b72beef0965d10be0778efecd61fcac6f79a4ea169393380734464f84f2ab30000000001003f0200000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000ffffffff010000000000000000036a010000000000000000",
     "cHNidP8BAHUCAAAAASaBcTce3/KF6Tet7qSze3gADAVmy7OtZGQXE8pCFxv2AAAAAAD+////AtPf9QUAAAAAGXapFNDFmQPFusKGh2DpD9UhpGZap2UgiKwA4fUFAAAAABepFDVF5uM7gyxHBQ8k0+65PJwDlIvHh7MuEwAAAQD9pQEBAAAAAAECiaPHHqtNIOA3G7ukzGmPopXJRjr6Ljl/hTPMti+VZ+UBAAAAFxYAFL4Y0VKpsBIDna89p95PUzSe7LmF/////4b4qkOnHf8USIk6UwpyN+9rRgi7st0tAXHmOuxqSJC0AQAAABcWABT+Pp7xp0XpdNkCxDVZQ6vLNL1TU/////8CAMLrCwAAAAAZdqkUhc/xCX/Z4Ai7NK9wnGIZeziXikiIrHL++E4sAAAAF6kUM5cluiHv1irHU6m80GfWx6ajnQWHAkcwRAIgJxK+IuAnDzlPVoMR3HyppolwuAJf3TskAinwf4pfOiQCIAGLONfc0xTnNMkna9b7QPZzMlvEuqFEyADS8vAtsnZcASED0uFWdJQbrUqZY3LLh+GFbTZSYG2YVi/jnF6efkE/IQUCSDBFAiEA0SuFLYXc2WHS9fSrZgZU327tzHlMDDPOXMMJ/7X85Y0CIGczio4OFyXBl/saiK9Z9R5E5CVbIBZ8hoQDHAXR8lkqASECI7cr7vCWXRC+B3jv7NYfysb3mk6haTkzgHNEZPhPKrMAAAAAAQA/AgAAAAH//////////////////////////////////////////wAAAAAA/////wEAAAAAAAAAAANqAQAAAAAAAAAA",
     "psbt format error."
@@ -296,6 +310,9 @@ TEST(Psbt, ParsePsbt) {
         }
       } catch (const CfdException& except) {
         EXPECT_STREQ(data.error_message.c_str(), except.what());
+        if (data.error_message != std::string(except.what())) {
+          cfd::core::logger::warn(CFD_LOG_SOURCE, "error. hex:{}", data.hex);
+        }
       }
     }
   }
@@ -1169,7 +1186,7 @@ TEST(Psbt, GlobalXpubTest) {
   }
 
   try {
-    KeyData key_data(ext_pubkey, "0/44", ByteData("b7665978"));
+    KeyData key_data(ext_pubkey, "0/1h/2/44", ByteData("b7665978"));
     psbt.SetGlobalXpubkey(key_data);
   } catch (const CfdException& except) {
     EXPECT_STREQ("", except.what());
@@ -1178,7 +1195,7 @@ TEST(Psbt, GlobalXpubTest) {
   try {
     EXPECT_TRUE(psbt.IsFindGlobalXpubkey(ext_pubkey));
     auto get_data = psbt.GetGlobalXpubkeyBip32(ext_pubkey);
-    EXPECT_STREQ("0/44", get_data.GetBip32Path().c_str());
+    EXPECT_STREQ("0/1'/2/44", get_data.GetBip32Path().c_str());
     EXPECT_STREQ("b7665978", get_data.GetFingerprint().GetHex().c_str());
   } catch (const CfdException& except) {
     EXPECT_STREQ("", except.what());
@@ -1186,7 +1203,7 @@ TEST(Psbt, GlobalXpubTest) {
 
   try {
     ExtPubkey ext_pubkey2("xpub6JNQxQDHv2vcUQiXjggbaGYZg3nmxX6ojMcJPSs4KfLSLnMBCg8VbJUh5n4to2SwLWXdSXnHBkUQx1fVnJ9oKYjPPYAQehjWRpx6ErQyykX");
-    KeyData key_data2(ext_pubkey2, "0/44'", ByteData("ae05dbb7"));
+    KeyData key_data2(ext_pubkey2, "0/1'/2/44/0/44'", ByteData("ae05dbb7"));
     psbt.SetGlobalXpubkey(key_data2);
   } catch (const CfdException& except) {
     EXPECT_STREQ("", except.what());
@@ -1197,11 +1214,11 @@ TEST(Psbt, GlobalXpubTest) {
     EXPECT_EQ(2, extkey_list.size());
     if (extkey_list.size() == 2) {
       EXPECT_STREQ("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C", extkey_list[0].GetExtPubkey().ToString().c_str());
-      EXPECT_STREQ("0/44", extkey_list[0].GetBip32Path().c_str());
+      EXPECT_STREQ("0/1'/2/44", extkey_list[0].GetBip32Path().c_str());
       EXPECT_STREQ("b7665978", extkey_list[0].GetFingerprint().GetHex().c_str());
 
       EXPECT_STREQ("xpub6JNQxQDHv2vcUQiXjggbaGYZg3nmxX6ojMcJPSs4KfLSLnMBCg8VbJUh5n4to2SwLWXdSXnHBkUQx1fVnJ9oKYjPPYAQehjWRpx6ErQyykX", extkey_list[1].GetExtPubkey().ToString().c_str());
-      EXPECT_STREQ("0/44'", extkey_list[1].GetBip32Path().c_str());
+      EXPECT_STREQ("0/1'/2/44/0/44'", extkey_list[1].GetBip32Path().c_str());
       EXPECT_STREQ("ae05dbb7", extkey_list[1].GetFingerprint().GetHex().c_str());
     }
   } catch (const CfdException& except) {
@@ -1210,7 +1227,21 @@ TEST(Psbt, GlobalXpubTest) {
 
   ByteData key("010488b21e0691fe4d298000002cb26a08008723cc8f19ac08bce635c087d63d738b63c33e62186d43cf3a5805f302e9156620b5b29e8272e86f1d81fb07d6c57c557cbc25218dfde33ab8cea06b7b");
   auto value = psbt.GetGlobalRecord(key);
-  EXPECT_STREQ("ae05dbb7000000002c000080", value.GetHex().c_str());
+  EXPECT_STREQ("ae05dbb70000000001000080020000002c000000000000002c000080", value.GetHex().c_str());
+}
+
+TEST(Psbt, GlobalXpubErrorTest) {
+  Psbt psbt("cHNidP8BAF4CAAAAAWkv08JB0xYYGWvDa23k9riJEU5CDpvd+cu+Ux5aVE1UAAAAAAD/////ARBLzR0AAAAAIgAgPK0GGd5n5iR6dqECgTY1wFNFfGuk/eSsH/2BSNcOS8wAAAAAAAEBIAhYzR0AAAAAF6kUlF+1A5GnBjfB/8Wrf7ZTCMLyMXWHIgIDpRL19ZwOeQH8R47WNT7vdvRPnLLBhb+89/C5u3Zxa/NHMEQCICBjWTfgUXDYPcMhOts6bq5mcTAI5KvDi0kSxWgN7E8MAiAzwIpxowdXsIRj1TDsBY7XQBlo+zC+9j1FSXIaDkhbhAEiAgP01HNhTpVKxPVRjm98szB7T4R0PhN+1O7LX0+2Q8I7R0cwRAIgXSdKeIfePvrehKSjScTDb1ibVWI7ECe32m2sicF4VjQCIGoDr+u7tgifHjf6yPmZpAFRYciSAUT9UxEtoFgEzUPMAQEDBAEAAAABBCIAIJxNrLJeu4rai7sa3bhp3qTYFwzJUfHZaUshVOFYMnbJAQVHUiEDpRL19ZwOeQH8R47WNT7vdvRPnLLBhb+89/C5u3Zxa/MhA/TUc2FOlUrE9VGOb3yzMHtPhHQ+E37U7stfT7ZDwjtHUq4iBgOlEvX1nA55AfxHjtY1Pu929E+cssGFv7z38Lm7dnFr8xgqcEdgLAAAgAAAAIAAAACAAAAAAAsAAAAiBgP01HNhTpVKxPVRjm98szB7T4R0PhN+1O7LX0+2Q8I7Rxida22GLAAAgAAAAIAAAACAAAAAAAsAAAAAAQAiACA8rQYZ3mfmJHp2oQKBNjXAU0V8a6T95Kwf/YFI1w5LzAEBR1IhApBtOZ9tu+zImNS43j9JdHTIakHyzzbXH5XlygawdIZ7IQJiLHl07DLeda+jczsJpsM9DepRSyn6rM+wmRd09GIiQlKuIgICYix5dOwy3nWvo3M7CabDPQ3qUUsp+qzPsJkXdPRiIkIYnWtthiwAAIAAAACAAAAAgAAAAAAMAAAAIgICkG05n2277MiY1LjeP0l0dMhqQfLPNtcfleXKBrB0hnsYKnBHYCwAAIAAAACAAAAAgAAAAAAMAAAAAA==");
+
+  ExtPubkey ext_pubkey("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C");
+
+  try {
+    KeyData key_data(ext_pubkey, "2/44", ByteData("b7665978"));
+    psbt.SetGlobalXpubkey(key_data);
+    EXPECT_TRUE(false);
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("psbt global xpub unmatch depth and paths.", except.what());
+  }
 }
 
 TEST(Psbt, ParseSingleOutputTx) {
@@ -1225,4 +1256,8 @@ TEST(Psbt, ParseSingleOutputTx) {
   psbt = Psbt(tx);
   EXPECT_EQ(tx_hex, psbt.GetTransaction().GetHex());
   EXPECT_EQ(psbt_hex, psbt.GetData().GetHex());
+}
+
+TEST(Psbt, PsbtLogFinal) {
+  EXPECT_NO_THROW((cfd::core::Finalize(&_g_handle_, true)));
 }

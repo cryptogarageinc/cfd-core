@@ -1079,7 +1079,7 @@ ByteData ConvertBitcoinTxFromWally(
       warn(CFD_LOG_SOURCE, "wally_tx_to_bytes NG[{}].", ret);
       throw CfdException(kCfdIllegalStateError, "psbt tx hex convert error.");
     }
-  } catch (const CfdError &except) {
+  } catch (const CfdException &except) {
     throw except;
   } catch (const std::exception &except) {
     warn(CFD_LOG_SOURCE, "unknown exception.");

@@ -1296,8 +1296,8 @@ void DescriptorNode::AnalyzeAll(const std::string& parent_name) {
       uint32_t flags = WALLY_MINISCRIPT_WITNESS_SCRIPT;
       if (parent_name == "tr") flags = WALLY_MINISCRIPT_TAPSCRIPT;
       int ret = wally_descriptor_parse_miniscript(
-          miniscript.c_str(), nullptr, nullptr, 0, 0, flags, script.data(),
-          script.size(), &written);
+          miniscript.c_str(), nullptr, 0, flags, script.data(), script.size(),
+          &written);
       if (ret == WALLY_OK) {
         script_type_ = DescriptorScriptType::kDescriptorScriptMiniscript;
         value_ = miniscript;
@@ -1681,7 +1681,7 @@ std::vector<DescriptorScriptReference> DescriptorNode::GetReferences(
       uint32_t flags = 0;
       if (parent_kind_ == "tr") flags = WALLY_MINISCRIPT_TAPSCRIPT;
       int ret = wally_descriptor_parse_miniscript(
-          value_.c_str(), nullptr, nullptr, 0, child_num, flags, script.data(),
+          value_.c_str(), nullptr, child_num, flags, script.data(),
           script.size(), &written);
       if ((ret == WALLY_OK) && (written <= script.size())) {
         locking_script = Script(script);
