@@ -52,16 +52,45 @@ static void SetKeyPathMap(
     uint32_t array_index, bool has_input) {
   int ret;
   struct wally_map *pk_map;
+  size_t current_size = 0;
+  if (has_input) {
+    ret = wally_psbt_get_input_keypaths_size(
+        psbt_obj, static_cast<size_t>(array_index), &current_size);
+  } else {
+    ret = wally_psbt_get_output_keypaths_size(
+        psbt_obj, static_cast<size_t>(array_index), &current_size);
+  }
+  if (ret != WALLY_OK) {
+    warn(CFD_LOG_SOURCE, "wally_psbt_get_keypaths_size NG[{}]", ret);
+    throw CfdException(kCfdInternalError, "psbt get keypaths size error.");
+  }
+
   // TODO(k-matsuzawa): function pointer is unmatch. C vs C++, or other DLL?
   // ret = wally_map_init(
   //     key_list.size(), wally_keypath_public_key_verify, &pk_map);
-  ret = wally_map_keypath_public_key_init_alloc(key_list.size(), &pk_map);
+  ret = wally_map_keypath_public_key_init_alloc(
+      key_list.size() + current_size, &pk_map);
   if (ret != WALLY_OK) {
     warn(
         CFD_LOG_SOURCE, "wally_map_keypath_public_key_init_alloc NG[{}]", ret);
     throw CfdException(kCfdMemoryFullError, "psbt map init error.");
   }
   try {
+    if (current_size != 0) {
+      if (has_input) {
+        ret =
+            wally_map_combine(pk_map, &psbt_obj->inputs[array_index].keypaths);
+      } else {
+        ret = wally_map_combine(
+            pk_map, &psbt_obj->outputs[array_index].keypaths);
+      }
+      if (ret != WALLY_OK) {
+        warn(CFD_LOG_SOURCE, "wally_map_combine NG[{}]", ret);
+        throw CfdException(
+            kCfdInternalError, "psbt combine current map error.");
+      }
+    }
+
     for (auto &key : key_list) {
       auto key_vec = key.GetPubkey().GetData().GetBytes();
       std::vector<uint8_t> fingerprint(4);
