@@ -1240,6 +1240,47 @@ TEST(Psbt, GlobalXpubTest) {
     dec_obj.GetData().GetHex());
 }
 
+TEST(Psbt, GlobalXpubTest2) {
+  Psbt psbt("cHNidP8BAEgCAAAAAAIA4fUFAAAAABYAFLMivdzmM7hRrHNwq0VPCzZ6BlTlAOH1BQAAAAAWABTKuMU6bo/AKW0c05FaMH1RxJGlVQAAAAAAAAA=");
+
+  try {
+    ExtPubkey ext_pubkey("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C");
+    KeyData key_data(ext_pubkey, "0/1h/2/44", ByteData("b7665978"));
+    psbt.SetGlobalXpubkey(key_data);
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("", except.what());
+  }
+
+  try {
+    ExtPubkey ext_pubkey2("xpub6JNQxQDHv2vcUQiXjggbaGYZg3nmxX6ojMcJPSs4KfLSLnMBCg8VbJUh5n4to2SwLWXdSXnHBkUQx1fVnJ9oKYjPPYAQehjWRpx6ErQyykX");
+    KeyData key_data2(ext_pubkey2, "0/1'/2/44/0/44'", ByteData("ae05dbb7"));
+    psbt.SetGlobalXpubkey(key_data2);
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("", except.what());
+  }
+
+  try {
+    auto extkey_list = psbt.GetGlobalXpubkeyDataList();
+    EXPECT_EQ(2, extkey_list.size());
+    if (extkey_list.size() == 2) {
+      EXPECT_STREQ("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C", extkey_list[0].GetExtPubkey().ToString().c_str());
+      EXPECT_STREQ("0/1'/2/44", extkey_list[0].GetBip32Path().c_str());
+      EXPECT_STREQ("b7665978", extkey_list[0].GetFingerprint().GetHex().c_str());
+
+      EXPECT_STREQ("xpub6JNQxQDHv2vcUQiXjggbaGYZg3nmxX6ojMcJPSs4KfLSLnMBCg8VbJUh5n4to2SwLWXdSXnHBkUQx1fVnJ9oKYjPPYAQehjWRpx6ErQyykX", extkey_list[1].GetExtPubkey().ToString().c_str());
+      EXPECT_STREQ("0/1'/2/44/0/44'", extkey_list[1].GetBip32Path().c_str());
+      EXPECT_STREQ("ae05dbb7", extkey_list[1].GetFingerprint().GetHex().c_str());
+    }
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("", except.what());
+  }
+  
+  std::string psbt_hex = "70736274ff01004802000000000200e1f50500000000160014b322bddce633b851ac7370ab454f0b367a0654e500e1f50500000000160014cab8c53a6e8fc0296d1cd3915a307d51c491a555000000004f010488b21e04a53a8ff30000002c839fb0d66f1887db167cdc530ab98e871d8b017ebcb198568874b6c98516364e03f1e767c0555ce0105b2a76d0f8b19b6d33a147f82f75a05c4c09580c39694fd314b76659780000000001000080020000002c0000004f010488b21e0691fe4d298000002cb26a08008723cc8f19ac08bce635c087d63d738b63c33e62186d43cf3a5805f302e9156620b5b29e8272e86f1d81fb07d6c57c557cbc25218dfde33ab8cea06b7b1cae05dbb70000000001000080020000002c000000000000002c000080000000";
+  EXPECT_EQ(
+    psbt_hex,
+    psbt.GetData().GetHex());
+}
+
 TEST(Psbt, GlobalXpubDecodeTest) {
   Psbt psbt("cHNidP8BAEgCAAAAAAIA4fUFAAAAABYAFLMivdzmM7hRrHNwq0VPCzZ6BlTlAOH1BQAAAAAWABTKuMU6bo/AKW0c05FaMH1RxJGlVQAAAABPAQSIsh4EpTqP8wAAACyDn7DWbxiH2xZ83FMKuY6HHYsBfryxmFaIdLbJhRY2TgPx52fAVVzgEFsqdtD4sZttM6FH+C91oFxMCVgMOWlP0xS3Zll4AAAAAAEAAIACAAAALAAAAE8BBIiyHgaR/k0pgAAALLJqCACHI8yPGawIvOY1wIfWPXOLY8M+YhhtQ886WAXzAukVZiC1sp6CcuhvHYH7B9bFfFV8vCUhjf3jOrjOoGt7HK4F27cAAAAAAQAAgAIAAAAsAAAAAAAAACwAAIAN/ANjZmQABmR1bW15MQQBAgMEDfwDY2ZkAAZkdW1teTIBAAAAAA==");
 

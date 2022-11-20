@@ -856,6 +856,14 @@ ByteData CreatePsbtOutputOnlyData(const struct wally_psbt *psbt) {
     builder.AddVariableBuffer(data.data(), sizeof(psbt->version));
   }
 
+  for (size_t i = 0; i < psbt->global_xpubs.num_items; ++i) {
+    auto *item = &psbt->global_xpubs.items[i];
+    builder.AddPrefixBuffer(
+        Psbt::kPsbtGlobalXpub, item->key,
+        static_cast<uint32_t>(item->key_len));
+    builder.AddVariableBuffer(
+        item->value, static_cast<uint32_t>(item->value_len));
+  }
   for (size_t i = 0; i < psbt->unknowns.num_items; ++i) {
     auto *item = &psbt->unknowns.items[i];
     builder.AddVariableBuffer(item->key, static_cast<uint32_t>(item->key_len));
