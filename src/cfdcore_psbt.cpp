@@ -806,7 +806,8 @@ static void WritePsbtOutput(
   for (size_t i = 0; i < output->psbt_fields.num_items; ++i) {
     auto *item = &output->psbt_fields.items[i];
     if (item->key == nullptr) {
-      builder->AddDirectByte(static_cast<uint8_t>(item->key_len));
+      uint8_t key = static_cast<uint8_t>(item->key_len);
+      builder->AddVariableBuffer(&key, 1);
     } else {
       builder->AddVariableBuffer(
           item->key, static_cast<uint32_t>(item->key_len));
@@ -863,7 +864,7 @@ ByteData CreatePsbtOutputOnlyData(const struct wally_psbt *psbt) {
   }
   builder.AddDirectByte(kPsbtSeparator);
 
-  // input is unsupport.
+  // input is unsupported.
 
   for (size_t i = 0; i < psbt->num_outputs; ++i) {
     WritePsbtOutput(&builder, &psbt->outputs[i]);
