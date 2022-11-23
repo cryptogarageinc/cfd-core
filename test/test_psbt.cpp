@@ -1240,8 +1240,98 @@ TEST(Psbt, GlobalXpubTest) {
     dec_obj.GetData().GetHex());
 }
 
-TEST(Psbt, GlobalXpubTest2) {
-  Psbt psbt("cHNidP8BAEgCAAAAAAIA4fUFAAAAABYAFLMivdzmM7hRrHNwq0VPCzZ6BlTlAOH1BQAAAAAWABTKuMU6bo/AKW0c05FaMH1RxJGlVQAAAAAAAAA=");
+TEST(Psbt, GlobalXpubDecodeTest) {
+  Psbt psbt("cHNidP8BAEgCAAAAAAIA4fUFAAAAABYAFLMivdzmM7hRrHNwq0VPCzZ6BlTlAOH1BQAAAAAWABTKuMU6bo/AKW0c05FaMH1RxJGlVQAAAABPAQSIsh4EpTqP8wAAACyDn7DWbxiH2xZ83FMKuY6HHYsBfryxmFaIdLbJhRY2TgPx52fAVVzgEFsqdtD4sZttM6FH+C91oFxMCVgMOWlP0xS3Zll4AAAAAAEAAIACAAAALAAAAE8BBIiyHgaR/k0pgAAALLJqCACHI8yPGawIvOY1wIfWPXOLY8M+YhhtQ886WAXzAukVZiC1sp6CcuhvHYH7B9bFfFV8vCUhjf3jOrjOoGt7HK4F27cAAAAAAQAAgAIAAAAsAAAAAAAAACwAAIAN/ANjZmQABmR1bW15MQQBAgMEDfwDY2ZkAAZkdW1teTIBAAAAAA==");
+
+  try {
+    auto extkey_list = psbt.GetGlobalXpubkeyDataList();
+    EXPECT_EQ(2, extkey_list.size());
+    if (extkey_list.size() == 2) {
+      EXPECT_STREQ("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C", extkey_list[0].GetExtPubkey().ToString().c_str());
+      EXPECT_STREQ("0/1'/2/44", extkey_list[0].GetBip32Path().c_str());
+      EXPECT_STREQ("b7665978", extkey_list[0].GetFingerprint().GetHex().c_str());
+
+      EXPECT_STREQ("xpub6JNQxQDHv2vcUQiXjggbaGYZg3nmxX6ojMcJPSs4KfLSLnMBCg8VbJUh5n4to2SwLWXdSXnHBkUQx1fVnJ9oKYjPPYAQehjWRpx6ErQyykX", extkey_list[1].GetExtPubkey().ToString().c_str());
+      EXPECT_STREQ("0/1'/2/44/0/44'", extkey_list[1].GetBip32Path().c_str());
+      EXPECT_STREQ("ae05dbb7", extkey_list[1].GetFingerprint().GetHex().c_str());
+    }
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("", except.what());
+  }
+}
+
+TEST(Psbt, GlobalXpubErrorTest) {
+  Psbt psbt("cHNidP8BAF4CAAAAAWkv08JB0xYYGWvDa23k9riJEU5CDpvd+cu+Ux5aVE1UAAAAAAD/////ARBLzR0AAAAAIgAgPK0GGd5n5iR6dqECgTY1wFNFfGuk/eSsH/2BSNcOS8wAAAAAAAEBIAhYzR0AAAAAF6kUlF+1A5GnBjfB/8Wrf7ZTCMLyMXWHIgIDpRL19ZwOeQH8R47WNT7vdvRPnLLBhb+89/C5u3Zxa/NHMEQCICBjWTfgUXDYPcMhOts6bq5mcTAI5KvDi0kSxWgN7E8MAiAzwIpxowdXsIRj1TDsBY7XQBlo+zC+9j1FSXIaDkhbhAEiAgP01HNhTpVKxPVRjm98szB7T4R0PhN+1O7LX0+2Q8I7R0cwRAIgXSdKeIfePvrehKSjScTDb1ibVWI7ECe32m2sicF4VjQCIGoDr+u7tgifHjf6yPmZpAFRYciSAUT9UxEtoFgEzUPMAQEDBAEAAAABBCIAIJxNrLJeu4rai7sa3bhp3qTYFwzJUfHZaUshVOFYMnbJAQVHUiEDpRL19ZwOeQH8R47WNT7vdvRPnLLBhb+89/C5u3Zxa/MhA/TUc2FOlUrE9VGOb3yzMHtPhHQ+E37U7stfT7ZDwjtHUq4iBgOlEvX1nA55AfxHjtY1Pu929E+cssGFv7z38Lm7dnFr8xgqcEdgLAAAgAAAAIAAAACAAAAAAAsAAAAiBgP01HNhTpVKxPVRjm98szB7T4R0PhN+1O7LX0+2Q8I7Rxida22GLAAAgAAAAIAAAACAAAAAAAsAAAAAAQAiACA8rQYZ3mfmJHp2oQKBNjXAU0V8a6T95Kwf/YFI1w5LzAEBR1IhApBtOZ9tu+zImNS43j9JdHTIakHyzzbXH5XlygawdIZ7IQJiLHl07DLeda+jczsJpsM9DepRSyn6rM+wmRd09GIiQlKuIgICYix5dOwy3nWvo3M7CabDPQ3qUUsp+qzPsJkXdPRiIkIYnWtthiwAAIAAAACAAAAAgAAAAAAMAAAAIgICkG05n2277MiY1LjeP0l0dMhqQfLPNtcfleXKBrB0hnsYKnBHYCwAAIAAAACAAAAAgAAAAAAMAAAAAA==");
+
+  ExtPubkey ext_pubkey("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C");
+
+  try {
+    KeyData key_data(ext_pubkey, "2/44", ByteData("b7665978"));
+    psbt.SetGlobalXpubkey(key_data);
+    EXPECT_TRUE(false);
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("psbt global xpub unmatch depth and paths.", except.what());
+  }
+}
+
+TEST(Psbt, EmptyInputDataTest) {
+  /*
+  
+
+            {
+                "case": "add output script",
+                "request": {
+                    "psbt": "cHNidP8BAAoCAAAAAAAAAAAAAA==",
+                    "outputs": [
+                        {
+                            "txout": {
+                                "address": "bcrt1q9rykudu0n2076thx28s2eywkfhaljlat2g0t7mwj48jtskwrf8es8aajgd",
+                                "amount": 100000000
+                            },
+                            "output": {
+                                "redeemScript": "522103487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda17584609321021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b62052ae",
+                                "bip32Derives": [
+                                    {
+                                        "pubkey": "03487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda175846093",
+                                        "master_fingerprint": "00000000",
+                                        "path": "0/1"
+                                    },
+                                    {
+                                        "pubkey": "021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b620",
+                                        "master_fingerprint": "00000000",
+                                        "path": "1/1"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "expect": {
+                    "psbt": "cHNidP8BADUCAAAAAAEA4fUFAAAAACIAICjJbjePmp/tLuZR4KyR1k37+X+rUh6/bdKp5LhZw0nzAAAAAAABAUdSIQNIfwcMIgDqA8ZKOuQHrYKHeIK3N7VTsVOv0d2hdYRgkyECHvnOgXvotmxfFxWKBhjvhi/wpfLezy5RoVwmU9/ktiBSriICAh75zoF76LZsXxcVigYY74Yv8KXy3s8uUaFcJlPf5LYgDAAAAAABAAAAAQAAACICA0h/BwwiAOoDxko65Aetgod4grc3tVOxU6/R3aF1hGCTDAAAAAAAAAAAAQAAAAA=",
+                    "hex": "70736274ff01003502000000000100e1f5050000000022002028c96e378f9a9fed2ee651e0ac91d64dfbf97fab521ebf6dd2a9e4b859c349f30000000000010147522103487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda17584609321021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b62052ae2202021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b6200c000000000100000001000000220203487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda1758460930c00000000000000000100000000"
+                }
+            }
+
+  */
+  Psbt psbt("cHNidP8BAAoCAAAAAAAAAAAAAA==");
+  Amount amount(100000000);
+  try {
+    Address addr("bcrt1q9rykudu0n2076thx28s2eywkfhaljlat2g0t7mwj48jtskwrf8es8aajgd");
+    Script out_multisig("522103487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda17584609321021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b62052ae");
+    KeyData key1(
+      Pubkey("03487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda175846093"),
+      "0/1", ByteData("00000000"));
+    KeyData key2(
+      Pubkey("021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b620"),
+      "1/1", ByteData("00000000"));
+    psbt.AddTxOut(addr.GetLockingScript(), amount);
+    psbt.SetTxOutData(0, out_multisig, std::vector<KeyData>{key1, key2});
+  } catch (const CfdException& except) {
+    EXPECT_STREQ("", except.what());
+    throw except;
+  }
+
+//  Psbt psbt("cHNidP8BAEgCAAAAAAIA4fUFAAAAABYAFLMivdzmM7hRrHNwq0VPCzZ6BlTlAOH1BQAAAAAWABTKuMU6bo/AKW0c05FaMH1RxJGlVQAAAAAAAAA=");
 
   try {
     ExtPubkey ext_pubkey("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C");
@@ -1275,44 +1365,10 @@ TEST(Psbt, GlobalXpubTest2) {
     EXPECT_STREQ("", except.what());
   }
   
-  std::string psbt_hex = "70736274ff01004802000000000200e1f50500000000160014b322bddce633b851ac7370ab454f0b367a0654e500e1f50500000000160014cab8c53a6e8fc0296d1cd3915a307d51c491a555000000004f010488b21e04a53a8ff30000002c839fb0d66f1887db167cdc530ab98e871d8b017ebcb198568874b6c98516364e03f1e767c0555ce0105b2a76d0f8b19b6d33a147f82f75a05c4c09580c39694fd314b76659780000000001000080020000002c0000004f010488b21e0691fe4d298000002cb26a08008723cc8f19ac08bce635c087d63d738b63c33e62186d43cf3a5805f302e9156620b5b29e8272e86f1d81fb07d6c57c557cbc25218dfde33ab8cea06b7b1cae05dbb70000000001000080020000002c000000000000002c000080000000";
+  std::string psbt_hex = "70736274ff01003502000000000100e1f5050000000022002028c96e378f9a9fed2ee651e0ac91d64dfbf97fab521ebf6dd2a9e4b859c349f3000000004f010488b21e04a53a8ff30000002c839fb0d66f1887db167cdc530ab98e871d8b017ebcb198568874b6c98516364e03f1e767c0555ce0105b2a76d0f8b19b6d33a147f82f75a05c4c09580c39694fd314b76659780000000001000080020000002c0000004f010488b21e0691fe4d298000002cb26a08008723cc8f19ac08bce635c087d63d738b63c33e62186d43cf3a5805f302e9156620b5b29e8272e86f1d81fb07d6c57c557cbc25218dfde33ab8cea06b7b1cae05dbb70000000001000080020000002c000000000000002c00008000010147522103487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda17584609321021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b62052ae2202021ef9ce817be8b66c5f17158a0618ef862ff0a5f2decf2e51a15c2653dfe4b6200c000000000100000001000000220203487f070c2200ea03c64a3ae407ad82877882b737b553b153afd1dda1758460930c00000000000000000100000000";
   EXPECT_EQ(
     psbt_hex,
     psbt.GetData().GetHex());
-}
-
-TEST(Psbt, GlobalXpubDecodeTest) {
-  Psbt psbt("cHNidP8BAEgCAAAAAAIA4fUFAAAAABYAFLMivdzmM7hRrHNwq0VPCzZ6BlTlAOH1BQAAAAAWABTKuMU6bo/AKW0c05FaMH1RxJGlVQAAAABPAQSIsh4EpTqP8wAAACyDn7DWbxiH2xZ83FMKuY6HHYsBfryxmFaIdLbJhRY2TgPx52fAVVzgEFsqdtD4sZttM6FH+C91oFxMCVgMOWlP0xS3Zll4AAAAAAEAAIACAAAALAAAAE8BBIiyHgaR/k0pgAAALLJqCACHI8yPGawIvOY1wIfWPXOLY8M+YhhtQ886WAXzAukVZiC1sp6CcuhvHYH7B9bFfFV8vCUhjf3jOrjOoGt7HK4F27cAAAAAAQAAgAIAAAAsAAAAAAAAACwAAIAN/ANjZmQABmR1bW15MQQBAgMEDfwDY2ZkAAZkdW1teTIBAAAAAA==");
-
-  try {
-    auto extkey_list = psbt.GetGlobalXpubkeyDataList();
-    EXPECT_EQ(2, extkey_list.size());
-    if (extkey_list.size() == 2) {
-      EXPECT_STREQ("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C", extkey_list[0].GetExtPubkey().ToString().c_str());
-      EXPECT_STREQ("0/1'/2/44", extkey_list[0].GetBip32Path().c_str());
-      EXPECT_STREQ("b7665978", extkey_list[0].GetFingerprint().GetHex().c_str());
-
-      EXPECT_STREQ("xpub6JNQxQDHv2vcUQiXjggbaGYZg3nmxX6ojMcJPSs4KfLSLnMBCg8VbJUh5n4to2SwLWXdSXnHBkUQx1fVnJ9oKYjPPYAQehjWRpx6ErQyykX", extkey_list[1].GetExtPubkey().ToString().c_str());
-      EXPECT_STREQ("0/1'/2/44/0/44'", extkey_list[1].GetBip32Path().c_str());
-      EXPECT_STREQ("ae05dbb7", extkey_list[1].GetFingerprint().GetHex().c_str());
-    }
-  } catch (const CfdException& except) {
-    EXPECT_STREQ("", except.what());
-  }
-}
-
-TEST(Psbt, GlobalXpubErrorTest) {
-  Psbt psbt("cHNidP8BAF4CAAAAAWkv08JB0xYYGWvDa23k9riJEU5CDpvd+cu+Ux5aVE1UAAAAAAD/////ARBLzR0AAAAAIgAgPK0GGd5n5iR6dqECgTY1wFNFfGuk/eSsH/2BSNcOS8wAAAAAAAEBIAhYzR0AAAAAF6kUlF+1A5GnBjfB/8Wrf7ZTCMLyMXWHIgIDpRL19ZwOeQH8R47WNT7vdvRPnLLBhb+89/C5u3Zxa/NHMEQCICBjWTfgUXDYPcMhOts6bq5mcTAI5KvDi0kSxWgN7E8MAiAzwIpxowdXsIRj1TDsBY7XQBlo+zC+9j1FSXIaDkhbhAEiAgP01HNhTpVKxPVRjm98szB7T4R0PhN+1O7LX0+2Q8I7R0cwRAIgXSdKeIfePvrehKSjScTDb1ibVWI7ECe32m2sicF4VjQCIGoDr+u7tgifHjf6yPmZpAFRYciSAUT9UxEtoFgEzUPMAQEDBAEAAAABBCIAIJxNrLJeu4rai7sa3bhp3qTYFwzJUfHZaUshVOFYMnbJAQVHUiEDpRL19ZwOeQH8R47WNT7vdvRPnLLBhb+89/C5u3Zxa/MhA/TUc2FOlUrE9VGOb3yzMHtPhHQ+E37U7stfT7ZDwjtHUq4iBgOlEvX1nA55AfxHjtY1Pu929E+cssGFv7z38Lm7dnFr8xgqcEdgLAAAgAAAAIAAAACAAAAAAAsAAAAiBgP01HNhTpVKxPVRjm98szB7T4R0PhN+1O7LX0+2Q8I7Rxida22GLAAAgAAAAIAAAACAAAAAAAsAAAAAAQAiACA8rQYZ3mfmJHp2oQKBNjXAU0V8a6T95Kwf/YFI1w5LzAEBR1IhApBtOZ9tu+zImNS43j9JdHTIakHyzzbXH5XlygawdIZ7IQJiLHl07DLeda+jczsJpsM9DepRSyn6rM+wmRd09GIiQlKuIgICYix5dOwy3nWvo3M7CabDPQ3qUUsp+qzPsJkXdPRiIkIYnWtthiwAAIAAAACAAAAAgAAAAAAMAAAAIgICkG05n2277MiY1LjeP0l0dMhqQfLPNtcfleXKBrB0hnsYKnBHYCwAAIAAAACAAAAAgAAAAAAMAAAAAA==");
-
-  ExtPubkey ext_pubkey("xpub6EkLrUTiaMiLbMAkbLN2BdH4hWkCQT7fLQf3Q6Ymx3gAqbuFeSKHfTMVDtjcsuRtEFqJbAsjYFZMrqeDLgRSsn4yuQygK44HWPrnA7gZC2C");
-
-  try {
-    KeyData key_data(ext_pubkey, "2/44", ByteData("b7665978"));
-    psbt.SetGlobalXpubkey(key_data);
-    EXPECT_TRUE(false);
-  } catch (const CfdException& except) {
-    EXPECT_STREQ("psbt global xpub unmatch depth and paths.", except.what());
-  }
 }
 
 TEST(Psbt, ParseSingleOutputTx) {

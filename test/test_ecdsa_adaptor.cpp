@@ -56,3 +56,12 @@ TEST(AdaptorSignature, Recover) {
 
   EXPECT_EQ(secret.GetHex(), sec.GetHex());
 }
+
+TEST(AdaptorSignature, Copy) {
+  AdaptorSignature sig(adaptor_sig2);
+  AdaptorSignature sig2;
+  sig2 = adaptor_sig2;
+
+  EXPECT_EQ(adaptor_sig2.GetData().GetHex(), sig.GetData().GetHex());
+  EXPECT_EQ(adaptor_sig2.GetData().GetHex(), sig2.GetData().GetHex());
+}

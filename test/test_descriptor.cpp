@@ -1124,6 +1124,7 @@ TEST(Descriptor, Parse_Taproot_xpubkey) {
   EXPECT_EQ(HashType::kTaproot, script_ref.GetHashType());
   EXPECT_STREQ(script_ref.GenerateAddress(nettype).GetAddress().c_str(),
       "bc1p4jueea9m897g4me0ef8eyqg9x5n02jzpwnl0yydvdtrl459r3fyqg8wvnj");
+  EXPECT_FALSE(script_ref.GetKeyList()[0].HasSchnorrPubkey());
   EXPECT_NO_THROW(pubkey = script_ref.GetKeyList()[0].GetSchnorrPubkey());
   EXPECT_STREQ(desc_str.c_str(), descriptor1.c_str());
   EXPECT_STREQ(locking_script.ToString().c_str(),

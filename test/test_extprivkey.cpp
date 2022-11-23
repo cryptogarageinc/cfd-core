@@ -46,6 +46,7 @@ TEST(ExtPrivkey, SeedConstructorTest_Privkey) {
   EXPECT_STREQ("04358394", extkey.GetVersionData().GetHex().c_str());
   EXPECT_EQ(extprivkey_kVersionTestnetPrivkey, extkey.GetVersion());
   EXPECT_TRUE(extkey.IsValid());
+  EXPECT_TRUE(extkey.HasPrivkey());
   EXPECT_STREQ("tprv8ZgxMBicQKsPfFfgL33JxxEMtuXMCaUxXqetSSSVcsFcbsYzrDAw5SUG8UStm8G86cxBUANpv2kpEsB4GMEG6NfLVRZGzZCRLQrr8deFcfZ", extkey.ToString().c_str());
   EXPECT_EQ(0, extkey.GetDepth());
   EXPECT_STREQ("59f40c9ff35a534bf02817c4c9b2a0eff6acc9b2e1e0c822dbbead73e4f69747", extkey.GetPrivkey().GetHex().c_str());

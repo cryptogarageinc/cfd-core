@@ -433,10 +433,12 @@ TEST(HDWallet, GenerateBip49KeyTest) {
   ExtPrivkey upriv1(
     "uprv8tXDerPXZ1QsVoUJiUMiLsVJ6ecEqqgybL2QvLT64AW9dofdJKDU8tVFxS54bvHFbRKSmBHm1nUeCNymkpBfZeu7iCrZsbFoVFxb5YvYM1k");
   EXPECT_EQ(NetType::kTestnet, upriv1.GetNetworkType());
+  EXPECT_FALSE(upriv1.HasMainnetKey());
   EXPECT_EQ(format_type, upriv1.GetFormatType());
   ExtPubkey ypub1(
     "ypub6WSJfRA4htEca7uYBfrSonHNDH6MCEFZqvaRhhfNnKbNfvgeFPAFx5sNsp2oHG4pjaJmD9cHo3Sw68UH4Tkt7EQmu5ua38yCCa23TX34ahn");
   EXPECT_EQ(NetType::kMainnet, ypub1.GetNetworkType());
+  EXPECT_TRUE(ypub1.HasMainnetKey());
   EXPECT_EQ(format_type, ypub1.GetFormatType());
 
   // Get address list

@@ -467,58 +467,6 @@ void MergeWallyMap(
 }
 
 /**
- * @brief alloc wally buffer.
- * @param[in] source    source
- * @param[in] length    source length
- * @return alloc buffer address
- */
-uint8_t *AllocWallyBuffer(const uint8_t *source, size_t length) {
-  wally_malloc_t malloc_func = nullptr;
-
-  int ret;
-  if (malloc_func == nullptr) {
-    struct wally_operations ops;
-    memset(&ops, 0, sizeof(ops));
-    ops.struct_size = sizeof(ops);
-    ret = wally_get_operations(&ops);
-    if (ret != WALLY_OK) {
-      warn(CFD_LOG_SOURCE, "wally_get_operations NG[{}]", ret);
-      throw CfdException(kCfdInternalError, "OperationFunctions get error.");
-    }
-    malloc_func = ops.malloc_fn;
-  }
-  void *addr = malloc_func(length);
-  if (addr == nullptr) {
-    warn(CFD_LOG_SOURCE, "wally malloc NG.");
-    throw CfdException(kCfdMemoryFullError, "malloc error.");
-  }
-  memcpy(addr, source, length);
-  return static_cast<uint8_t *>(addr);
-}
-
-/**
- * @brief free wally buffer
- * @param[in] source   buffer
- */
-void FreeWallyBuffer(void *source) {
-  wally_free_t free_func = nullptr;
-
-  int ret;
-  if (free_func == nullptr) {
-    struct wally_operations ops;
-    memset(&ops, 0, sizeof(ops));
-    ops.struct_size = sizeof(ops);
-    ret = wally_get_operations(&ops);
-    if (ret != WALLY_OK) {
-      warn(CFD_LOG_SOURCE, "wally_get_operations NG[{}]", ret);
-      throw CfdException(kCfdInternalError, "OperationFunctions get error.");
-    }
-    free_func = ops.free_fn;
-  }
-  free_func(source);
-}
-
-/**
  * @brief merge input item.
  * @param[in,out] psbt     target psbt input.
  * @param[in] psbt_ref     reference psbt input.
@@ -3049,24 +2997,8 @@ void Psbt::ClearTxInSignData(uint32_t index) {
     wally_map_remove_integer(&input->psbt_fields, remove_key);
   }
 
-  for (size_t idx = 0; idx < input->keypaths.num_items; ++idx) {
-    auto keypath = &input->keypaths.items[idx];
-    memset(keypath->key, 0, keypath->key_len);
-    memset(keypath->value, 0, keypath->value_len);
-    FreeWallyBuffer(keypath->key);
-    FreeWallyBuffer(keypath->value);
-    memset(keypath, 0, sizeof(*keypath));
-  }
-  input->keypaths.num_items = 0;
-  for (size_t idx = 0; idx < input->signatures.num_items; ++idx) {
-    auto sig = &input->signatures.items[idx];
-    if (sig->key != nullptr) memset(sig->key, 0, sig->key_len);
-    if (sig->value != nullptr) memset(sig->value, 0, sig->value_len);
-    FreeWallyBuffer(sig->key);
-    FreeWallyBuffer(sig->value);
-    memset(sig, 0, sizeof(*sig));
-  }
-  input->signatures.num_items = 0;
+  wally_map_clear(&input->keypaths);
+  wally_map_clear(&input->signatures);
   input->sighash = 0;
 }
 

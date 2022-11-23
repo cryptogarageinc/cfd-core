@@ -320,7 +320,7 @@ class CFD_CORE_EXPORT Extkey {
    * @param[in] format_type   format type
    */
   explicit Extkey(
-      const ByteData& seed, NetType network_type = NetType::kMainnet,
+      const ByteData& seed, NetType network_type,
       Bip32FormatType format_type = Bip32FormatType::kNormal);
   /**
    * @brief constructor.

@@ -11,6 +11,7 @@
 using cfd::core::CfdException;
 using cfd::core::ByteData;
 using cfd::core::ByteData256;
+using cfd::core::Extkey;
 using cfd::core::ExtPubkey;
 using cfd::core::KeyData;
 using cfd::core::Privkey;
@@ -267,4 +268,15 @@ TEST(ExtPubkey, GetPubkeyAddress) {
       addrs3[3].GetAddress());
   }
 #endif  // CFD_DISABLE_ELEMENTS
+}
+
+TEST(Extkey, Constructor) {
+  
+  std::string ext_base58 = "xpub661MyMwAqRbcGB88KaFbLGiYAat55APKhtWg4uYMkXAmfuSTbq2QYsn9sKJCj1YqZPafsboef4h4YbXXhNhPwMbkHTpkf3zLhx7HvFw1NDy";
+  Extkey extkey_base58(ext_base58);
+  ByteData ext_serial(
+    "0488b21e000000000000000000a3fa8c983223306de0f0f65e74ebb1e98aba751633bf91d5fb56529aa5c132c102f632717d78bf73e74aa8461e2e782532abae4eed5110241025afb59ebfd3d2fd");
+  Extkey extkey(ext_serial);
+
+  EXPECT_EQ(extkey_base58.GetData().GetHex(), extkey.GetData().GetHex());
 }

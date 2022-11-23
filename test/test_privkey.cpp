@@ -17,6 +17,7 @@ using cfd::core::NetType;
 using cfd::core::HashUtil;
 using cfd::core::SignatureUtil;
 using cfd::core::KeyFormatData;
+using cfd::core::Bip32FormatType;
 
 TEST(Privkey, Privkey) {
   Privkey privkey;
@@ -372,6 +373,21 @@ TEST(Privkey, SignBitcoinMessageWithBase64Test) {
 
   std::string message2 = "This is just a test message2";
   EXPECT_FALSE(pk.VerifyBitcoinMessageWithBase64(sig_b64, message2));
+}
+
+TEST(KeyFormatData, CopyTest) {
+  std::string custom_json = "{"
+      "\"IsMainnet\":\"\",\"wif\":\"40\","
+      "\"bip32xpub\":\"0488b21e\",\"bip32xprv\":\"0488ade4\""
+    "}";
+  auto data = KeyFormatData::ConvertFromJson(custom_json);
+  KeyFormatData copy_data;
+  copy_data = data;
+  EXPECT_TRUE(copy_data.LoadCache());  // for IsFindFormatType
+
+  EXPECT_TRUE(copy_data.IsFindFormatType(Bip32FormatType::kNormal));
+  EXPECT_TRUE(copy_data.IsFind(cfd::core::kBip32Xpub));
+  EXPECT_EQ(0x0488b21eU, copy_data.GetValue(cfd::core::kBip32Xpub));
 }
 
 TEST(KeyFormatData, CustomKeyFormatList) {
