@@ -250,17 +250,17 @@ class CFD_CORE_EXPORT Psbt {
 
   /**
    * @brief extract transaction.
-   * @details need already finalized.
+   * @param[in] can_unfinalized_extract     non finalized extract flag.
    * @return binary transaction data.
    */
-  ByteData Extract() const;
+  ByteData Extract(bool can_unfinalized_extract = false) const;
 
   /**
    * @brief extract transaction.
-   * @details need already finalized.
-   * @return transactiona.
+   * @param[in] can_unfinalized_extract     non finalized extract flag.
+   * @return transaction.
    */
-  Transaction ExtractTransaction() const;
+  Transaction ExtractTransaction(bool can_unfinalized_extract = false) const;
 
   /**
    * @brief Get currently base transaction.

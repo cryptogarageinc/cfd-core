@@ -2215,11 +2215,12 @@ void Psbt::Finalize() {
   }
 }
 
-ByteData Psbt::Extract() const {
+ByteData Psbt::Extract(bool can_unfinalized_extract) const {
   struct wally_psbt *psbt_pointer;
+  uint32_t flag = can_unfinalized_extract ? WALLY_PSBT_EXTRACT_NON_FINAL : 0;
   psbt_pointer = static_cast<struct wally_psbt *>(wally_psbt_pointer_);
   struct wally_tx *tx = nullptr;
-  int ret = wally_psbt_extract(psbt_pointer, &tx);
+  int ret = wally_psbt_extract(psbt_pointer, flag, &tx);
   if (ret != WALLY_OK) {
     warn(CFD_LOG_SOURCE, "wally_psbt_extract NG[{}]", ret);
     throw CfdException(kCfdIllegalStateError, "psbt extract error.");
@@ -2234,7 +2235,9 @@ ByteData Psbt::Extract() const {
   }
 }
 
-Transaction Psbt::ExtractTransaction() const { return Transaction(Extract()); }
+Transaction Psbt::ExtractTransaction(bool can_unfinalized_extract) const {
+  return Transaction(Extract(can_unfinalized_extract));
+}
 
 Transaction Psbt::GetTransaction() const { return base_tx_; }
 
