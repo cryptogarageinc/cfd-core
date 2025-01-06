@@ -193,7 +193,7 @@ jobs:
         zip -r lcov_cfdcore_output.zip lcov_cfdcore_output
         cd ..
     - name: upload coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: output-lcov-cfdcore-${{ matrix.os }}
         path: ./build/lcov_cfdcore_output.zip

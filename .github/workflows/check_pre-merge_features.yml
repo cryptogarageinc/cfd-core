@@ -123,7 +123,7 @@ jobs:
         cd ..
     - name: upload coverage
       if: matrix.elements == 'on'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: output-lcov-cfdcore-${{ matrix.os }}
         path: ./build/lcov_cfdcore_output.zip
@@ -193,7 +193,7 @@ jobs:
          # --valgrind-stacksize=1048576 --num-callers=12
          valgrind -v --tool=memcheck --leak-check=full --valgrind-stacksize=10485760 --log-file=./valgrind.log --time-stamp=yes ./build/Debug/cfdcore_test
     - name: upload coverage
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: valgrind-log
         path: ./valgrind.log
